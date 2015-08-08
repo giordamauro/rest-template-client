@@ -2,7 +2,7 @@ package com.mgiorda.resttemplate.client;
 
 import org.springframework.web.client.RestTemplate;
 
-import com.mgiorda.resttemplate.util.MethodInfo;
+import com.mgiorda.resttemplate.util.MethodInvocation;
 
 public interface RestTemplateClient {
 
@@ -10,7 +10,7 @@ public interface RestTemplateClient {
 
 	String getHostUrl();
 
-	default <T, E> RestTemplateRequest<E> Request(MethodInfo<T, E> methodInfo) {
+	default <T, E> RestTemplateRequest<E> Request(MethodInvocation<T, E> methodInfo) {
 		
 		RestService<T, E> restService = RestService.New(methodInfo);
 		RestTemplateRequest<E> client = new RestTemplateRequest<>(restService, getRestTemplate(), getHostUrl());

@@ -12,10 +12,12 @@ public class Interfaces<T>{
 	private final Class<T> proxyClass;
 	
 	public Interfaces(Class<T> proxyClass) {
+		
+		Objects.nonNull(proxyClass);
 		this.proxyClass = proxyClass;
 	}
 	
-	public MethodInfo<T, ?> consumer(Consumer<T> funcion){
+	public MethodInvocation<T, ?> voidMethod(Consumer<T> funcion){
 
 		ProxyFactory<T, ?> proxyFactory = new ProxyFactory<>(proxyClass);
 		
@@ -23,14 +25,23 @@ public class Interfaces<T>{
 		
 		return proxyFactory.getProxyInfo();
 	}
-	
-	public static <T> MethodInfo<T, ?> voidMethod(Class<T> interfaceClass, Consumer<T> consumer){
+
+	public <R> MethodInvocation<T, R> method(Function<T, R> function){
+
+		ProxyFactory<T, R> proxyFactory = new ProxyFactory<>(proxyClass);
 		
-		return new Interfaces<T>(interfaceClass).consumer(consumer);
+		function.apply(proxyFactory.getProxy());
+		
+		return proxyFactory.getProxyInfo();
 	}
 	
-	public static <T, R> MethodInfo<T, R> method(Class<T> interfaceClass, Function<T, R> consumer){
-		return null;
+	public static <T> MethodInvocation<T, ?> voidMethod(Class<T> interfaceClass, Consumer<T> consumer){
+		
+		return new Interfaces<T>(interfaceClass).voidMethod(consumer);
+	}
+	
+	public static <T, R> MethodInvocation<T, R> method(Class<T> interfaceClass, Function<T, R> function){
+		return new Interfaces<T>(interfaceClass).method(function);
 	}
 		
 	private static class ProxyFactory<T, E> implements InvocationHandler{
@@ -38,7 +49,7 @@ public class Interfaces<T>{
 		private final Class<T> proxyClass;
 		private final T proxy;
 		
-		private MethodInfo<T, E> proxyInfo;
+		private MethodInvocation<T, E> proxyInfo;
 		
 		@SuppressWarnings("unchecked")
 		public ProxyFactory(Class<T> proxyClass) {
@@ -50,7 +61,7 @@ public class Interfaces<T>{
 		@Override
 		public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 
-			proxyInfo = new MethodInfo<T, E>(proxyClass, method, args);
+			proxyInfo = new MethodInvocation<T, E>(proxyClass, method, args);
 
 			return null;
 		}
@@ -59,7 +70,7 @@ public class Interfaces<T>{
 			return proxy;
 		}
 		
-		public MethodInfo<T, E> getProxyInfo(){
+		public MethodInvocation<T, E> getProxyInfo(){
 			
 			Objects.requireNonNull(proxyInfo, "Proxy method was never called.");
 			return proxyInfo;

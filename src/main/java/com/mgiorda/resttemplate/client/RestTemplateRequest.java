@@ -1,9 +1,5 @@
 package com.mgiorda.resttemplate.client;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -18,12 +14,15 @@ public class RestTemplateRequest<R> {
 
 	private final RestTemplate restTemplate;
 	private final String hostUrl;
-	private final RestService<?, R> restService;
 	
-	private final Map<String, List<String>> headers = new HashMap<>();
+	private HttpMethod httpMethod;
+	private String serviceUrl;
 	private Object[] uriVariables;
 	private Object body;
 	private Class<R> responseClass;
+	
+	private Optional<HttpHeaders> httpHeaders = Optional.empty();
+	private Optional<HttpEntity<Object>> httpEntity = Optional.empty();
 	
 	RestTemplateRequest(RestService<?, R> restService, RestTemplate restTemplate, String hostUrl) {
 		
@@ -33,13 +32,25 @@ public class RestTemplateRequest<R> {
 		
 		this.restTemplate = restTemplate;
 		this.hostUrl = hostUrl;
-		this.restService = restService;
+		
+		this.httpMethod = restService.getHttpMethod();
+		this.serviceUrl = restService.getUrl();
 		this.uriVariables = restService.getDefaultUriVariables();
 		
 		Class<R> responseClass = restService.getResponseType();
 		this.responseClass = (!responseClass.equals(Void.TYPE)) ? responseClass : null;
 	}
 	
+	private RestTemplateRequest(RestTemplateRequest<?> request, Class<R> responseClass){
+		
+		this.restTemplate = request.restTemplate;
+		this.hostUrl = request.hostUrl;
+		this.httpMethod = request.httpMethod;
+		this.serviceUrl = request.serviceUrl;
+		this.uriVariables = request.uriVariables;
+		this.responseClass = responseClass;
+	}
+		
 	public RestTemplateRequest<R> withUriVariables(Object... uriVariables){
 		
 		Objects.nonNull(uriVariables);
@@ -54,16 +65,11 @@ public class RestTemplateRequest<R> {
 		Objects.nonNull(header);
 		Objects.nonNull(value);
 		
-		List<String> values = Optional.ofNullable(headers.get(header))
-				.orElseGet(() -> {
-					
-					List<String> newList = new ArrayList<>();
-					headers.put(header, newList);
-					
-					return newList;
-				});
-		
-		values.add(value);
+		HttpHeaders headers = httpHeaders.orElseGet(() -> {
+			this.httpHeaders = Optional.of(new HttpHeaders());
+			return httpHeaders.get();
+		});
+		headers.add(header, value);
 		
 		return this;
 	}
@@ -77,19 +83,64 @@ public class RestTemplateRequest<R> {
 		return this;
 	}
 	
+	public RestTemplateRequest<R> withHttpMethod(HttpMethod httpMethod){
+	
+		Objects.nonNull(body);
+		
+		this.httpMethod = httpMethod;
+		
+		return this;
+	}
+	
+	public RestTemplateRequest<R> withServiceUrl(String serviceUrl){
+
+		Objects.nonNull(serviceUrl);
+		
+		this.serviceUrl = serviceUrl;
+		
+		return this;
+	}
+	
 	public RestTemplateRequest<R> withContentType(MediaType contentType){
 		return withHeader("Content-Type", contentType.getType());
 	}
 	
+	public RestTemplateRequest<R> withHttpHeaders(HttpHeaders httpHeaders){
+
+		this.httpHeaders = Optional.of(httpHeaders);
+		
+		return this;
+	}
+
+	public RestTemplateRequest<R> withRequestHttpEntity(HttpEntity<?> requestEntity){
+
+		Objects.requireNonNull(requestEntity);
+		
+		@SuppressWarnings("unchecked")
+		HttpEntity<Object> httpEntity = (HttpEntity<Object>) requestEntity;
+		this.httpEntity = Optional.of(httpEntity);
+		
+		return this;
+	}
+	
+
+	public <E> RestTemplateRequest<E> withResponseAs(Class<E> responseClass){
+
+		Objects.requireNonNull(responseClass);
+		
+		return new RestTemplateRequest<>(this, responseClass);
+	}
+	
 	public ResponseEntity<R> getResponseEntity(){
 		
-		String serviceUrl = restService.getUrl();
-		HttpMethod method = restService.getHttpMethod();
+		HttpEntity<Object> requestEntity = httpEntity
+				.orElseGet(() -> 
+					httpHeaders
+						.map(httpHeaders -> new HttpEntity<>(body, httpHeaders))
+						.orElse(new HttpEntity<>(body))
+						);
 		
-		HttpEntity<Object> requestEntity = buildHttpHeaders().map(httpHeaders -> new HttpEntity<>(body, httpHeaders))
-				.orElse(new HttpEntity<>(body));
-		
-		ResponseEntity<R> exchangeResponse = restTemplate.exchange(hostUrl + serviceUrl, method, requestEntity, responseClass, uriVariables);
+		ResponseEntity<R> exchangeResponse = restTemplate.exchange(hostUrl + serviceUrl, httpMethod, requestEntity, responseClass, uriVariables);
 
 		return exchangeResponse;
 	}
@@ -101,24 +152,5 @@ public class RestTemplateRequest<R> {
 		return Optional.ofNullable(responseClass)
 				.map(responseType -> response.getBody())
 				.orElse(null);
-	}
-	
-	private Optional<HttpHeaders> buildHttpHeaders() {
-
-		Optional<HttpHeaders> result = Optional.empty();
-		
-		if(!headers.isEmpty()){
-			HttpHeaders httpHeaders = new HttpHeaders();
-		
-			headers.entrySet()
-				.parallelStream()
-				.forEach(header -> {
-				
-					header.getValue()
-						.forEach(value-> httpHeaders.add(header.getKey(), value));
-				});
-			result = Optional.of(httpHeaders);
-		}
-		return result;
 	}
 }

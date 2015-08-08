@@ -8,7 +8,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import com.mgiorda.resttemplate.util.MethodInfo;
+import com.mgiorda.resttemplate.util.MethodInvocation;
 
 public class RestService<T, E>{
 	
@@ -20,7 +20,7 @@ public class RestService<T, E>{
 	private final Class<E> returnType;
 	private final Object[] defaultUriVariables;
 	
-	public RestService(MethodInfo<T, E> info){
+	public RestService(MethodInvocation<T, E> info){
 		
 		Objects.requireNonNull(info);
 		
@@ -72,7 +72,7 @@ public class RestService<T, E>{
 		return defaultUriVariables;
 	}
 
-	public static <T, E> RestService<T, E> New(MethodInfo<T, E> info){
+	public static <T, E> RestService<T, E> New(MethodInvocation<T, E> info){
 		return new RestService<T, E>(info);
 	}
 }

@@ -1,6 +1,8 @@
 package com.mgiorda.resttemplate.client;
 
 import org.junit.Test;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
@@ -36,16 +38,18 @@ public class TestClass {
 	@Test
 	public void testOverridingHttpValues(){
 		
-		ResponseEntity<String> responseEntity = Interfaces.method(UsersController.class, controller -> controller.helloService("hola"))
+		ResponseEntity<Integer> responseEntity = Interfaces.method(UsersController.class, controller -> controller.helloService("hola"))
 				.map(restClient::Request)
+				.withServiceUrl("Overriden serviceUrl")
 				.withUriVariables(new Object[] {"differentHola"})
 				.withContentType(MediaType.APPLICATION_JSON)
 				.withHeader("Accept", "application/json")
 				.withBody("Sample body content")
+				.withHttpHeaders(new HttpHeaders())
+				.withRequestHttpEntity(new HttpEntity<String>("Another body"))
+				.withResponseAs(Integer.class)
 				.getResponseEntity();
 		
 		System.out.println(responseEntity.getStatusCode());
 	}
-
-	
 }

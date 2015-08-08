@@ -4,13 +4,13 @@ import java.lang.reflect.Method;
 import java.util.Optional;
 import java.util.function.Function;
 
-public class MethodInfo<T, E>{
+public class MethodInvocation<T, E>{
 	
 	private final Class<T> interfaceClass;
 	private final Method method;
 	private final Object[] args;
 	
-	public MethodInfo(Class<T> proxyClass, Method method, Object[] args) {
+	public MethodInvocation(Class<T> proxyClass, Method method, Object[] args) {
 		
 		this.interfaceClass = proxyClass;
 		this.method = method;
@@ -34,7 +34,7 @@ public class MethodInfo<T, E>{
 		return (Class<E>) method.getReturnType();
 	}
 	
-	public <R> R map(Function<MethodInfo<T, E>, R> mapper){
+	public <R> R map(Function<MethodInvocation<T, E>, R> mapper){
 		return mapper.apply(this);
 	}
 }
