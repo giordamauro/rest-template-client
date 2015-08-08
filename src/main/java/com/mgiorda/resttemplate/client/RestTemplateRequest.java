@@ -10,20 +10,22 @@ import java.util.Optional;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
-public class RestTemplateRequest {
+public class RestTemplateRequest<R> {
 
 	private final RestTemplate restTemplate;
 	private final String hostUrl;
-	private final RestService<?> restService;
+	private final RestService<?, R> restService;
 	
-	private Object[] uriVariables;
 	private final Map<String, List<String>> headers = new HashMap<>();
+	private Object[] uriVariables;
 	private Object body;
+	private Class<R> responseClass;
 	
-	RestTemplateRequest(RestService<?> restService, RestTemplate restTemplate, String hostUrl) {
+	RestTemplateRequest(RestService<?, R> restService, RestTemplate restTemplate, String hostUrl) {
 		
 		Objects.requireNonNull(restService);
 		Objects.requireNonNull(restTemplate);
@@ -33,9 +35,12 @@ public class RestTemplateRequest {
 		this.hostUrl = hostUrl;
 		this.restService = restService;
 		this.uriVariables = restService.getDefaultUriVariables();
+		
+		Class<R> responseClass = restService.getResponseType();
+		this.responseClass = (!responseClass.equals(Void.TYPE)) ? responseClass : null;
 	}
 	
-	public RestTemplateRequest withUriVariables(Object... uriVariables){
+	public RestTemplateRequest<R> withUriVariables(Object... uriVariables){
 		
 		Objects.nonNull(uriVariables);
 		
@@ -44,8 +49,11 @@ public class RestTemplateRequest {
 		return this;
 	}
 	
-	public RestTemplateRequest withHeader(String header, String value){
-			
+	public RestTemplateRequest<R> withHeader(String header, String value){
+
+		Objects.nonNull(header);
+		Objects.nonNull(value);
+		
 		List<String> values = Optional.ofNullable(headers.get(header))
 				.orElseGet(() -> {
 					
@@ -60,37 +68,42 @@ public class RestTemplateRequest {
 		return this;
 	}
 	
-	public RestTemplateRequest withBody(Object body){
+	public RestTemplateRequest<R> withBody(Object body){
+		
+		Objects.nonNull(body);
 		
 		this.body = body;
 		
 		return this;
 	}
 	
-	public void send(){
-		sendGet(null);
+	public RestTemplateRequest<R> withContentType(MediaType contentType){
+		return withHeader("Content-Type", contentType.getType());
 	}
 	
-	public RestTemplateRequest withContentType(String contentType){
-		return withHeader("Content-Type", contentType);
-	}
-	
-	public <T> T sendGet(Class<T> responseClass){
-
+	public ResponseEntity<R> getResponseEntity(){
+		
 		String serviceUrl = restService.getUrl();
 		HttpMethod method = restService.getHttpMethod();
 		
-		HttpEntity<Object> requestEntity = getHttpHeaders().map(httpHeaders -> new HttpEntity<>(body, httpHeaders))
+		HttpEntity<Object> requestEntity = buildHttpHeaders().map(httpHeaders -> new HttpEntity<>(body, httpHeaders))
 				.orElse(new HttpEntity<>(body));
 		
-		ResponseEntity<T> exchangeResponse = restTemplate.exchange(hostUrl + serviceUrl, method, requestEntity, responseClass, uriVariables);
-        
+		ResponseEntity<R> exchangeResponse = restTemplate.exchange(hostUrl + serviceUrl, method, requestEntity, responseClass, uriVariables);
+
+		return exchangeResponse;
+	}
+	
+	public R send(){
+
+		ResponseEntity<R> response = getResponseEntity();
+		
 		return Optional.ofNullable(responseClass)
-				.map(responseType -> exchangeResponse.getBody())
+				.map(responseType -> response.getBody())
 				.orElse(null);
 	}
 	
-	private Optional<HttpHeaders> getHttpHeaders() {
+	private Optional<HttpHeaders> buildHttpHeaders() {
 
 		Optional<HttpHeaders> result = Optional.empty();
 		

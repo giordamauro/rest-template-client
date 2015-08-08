@@ -10,10 +10,10 @@ public interface RestTemplateClient {
 
 	String getHostUrl();
 
-	default <T> RestTemplateRequest Request(MethodInfo<T> methodInfo) {
+	default <T, E> RestTemplateRequest<E> Request(MethodInfo<T, E> methodInfo) {
 		
-		RestService<T> restService = RestService.New(methodInfo);
-		RestTemplateRequest client = new RestTemplateRequest(restService, getRestTemplate(), getHostUrl());
+		RestService<T, E> restService = RestService.New(methodInfo);
+		RestTemplateRequest<E> client = new RestTemplateRequest<>(restService, getRestTemplate(), getHostUrl());
 		
 		return client;
 	}

@@ -4,7 +4,7 @@ import java.lang.reflect.Method;
 import java.util.Optional;
 import java.util.function.Function;
 
-public class MethodInfo<T>{
+public class MethodInfo<T, E>{
 	
 	private final Class<T> interfaceClass;
 	private final Method method;
@@ -29,13 +29,12 @@ public class MethodInfo<T>{
 		return Optional.ofNullable(args);
 	}
 	
-	public <R> R map(Function<MethodInfo<T>, R> mapper){
-		
-		return mapper.apply(this);
+	@SuppressWarnings("unchecked")
+	public Class<E> getReturnType(){
+		return (Class<E>) method.getReturnType();
 	}
-
-	@Override
-	public String toString() {
-		return "MethodInfo [interfaceClass=" + interfaceClass + ", method=" + method + "]";
+	
+	public <R> R map(Function<MethodInfo<T, E>, R> mapper){
+		return mapper.apply(this);
 	}
 }

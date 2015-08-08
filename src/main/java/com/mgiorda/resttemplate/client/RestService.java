@@ -7,21 +7,20 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.client.RestTemplate;
 
 import com.mgiorda.resttemplate.util.MethodInfo;
 
-public class RestService<T>{
+public class RestService<T, E>{
 	
 //	TODO: Add complete information (consumes, produces, etc)
 //	TODO: Support multiple values (services Urls, methods, etc)
 	
 	private final RequestMethod method;
 	private final String serviceUrl;
-	private final Class<?> returnType;
+	private final Class<E> returnType;
 	private final Object[] defaultUriVariables;
 	
-	public RestService(MethodInfo<T> info){
+	public RestService(MethodInfo<T, E> info){
 		
 		Objects.requireNonNull(info);
 		
@@ -46,7 +45,10 @@ public class RestService<T>{
 				.map(values -> values[0])
 				.orElse(RequestMethod.GET);
 		
-		this.returnType = info.getMethod().getReturnType();
+		@SuppressWarnings("unchecked")
+		Class<E> returnType = (Class<E>) info.getMethod().getReturnType();
+		this.returnType = returnType;
+		
 		this.defaultUriVariables = info.getArgs().orElse(new Object[]{});
 	}
 	
@@ -62,20 +64,15 @@ public class RestService<T>{
 		return serviceUrl;
 	}
 
-	public Class<?> getResponseType() {
+	public Class<E> getResponseType() {
 		return returnType;
 	}
 	
 	public Object[] getDefaultUriVariables(){
 		return defaultUriVariables;
 	}
-	
-	public RestTemplateRequest createClient(RestTemplate restTemplate, String hostUrl){
-		
-		return new RestTemplateRequest(this, restTemplate, hostUrl);
-	}
 
-	public static <T> RestService<T> New(MethodInfo<T> info){
-		return new RestService<T>(info);
+	public static <T, E> RestService<T, E> New(MethodInfo<T, E> info){
+		return new RestService<T, E>(info);
 	}
 }
