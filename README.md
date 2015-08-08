@@ -2,12 +2,17 @@
 Java 8 Spring RestTemplate client - Based on builders and dynamic proxies
 
 ```java
-public class TestClass {
-		
-	/**
-	*  TODO: Allow overriding any of the Http RestTemplate parameters - Add getResponseEntityAs() with different type.
-	*/
+@RequestMapping("/users")
+public interface UsersController{
 	
+	@RequestMapping
+	void simpleEmptyService();
+	
+	@RequestMapping("/hello/{hello}")
+	String helloService(@PathVariable("hello") String helloValue);
+}
+
+public class TestClass {
 	private RestTemplateClient restClient = RestTemplateClient.host("http://localhost:8080")
 	/*					.andRestTemplate(new RestTemplate())*/;
 		
@@ -32,24 +37,18 @@ public class TestClass {
 	@Test
 	public void testOverridingHttpValues(){
 		
-		ResponseEntity<String> responseEntity = Interfaces.method(UsersController.class, controller -> controller.helloService("hola"))
+		ResponseEntity<Integer> responseEntity = Interfaces.method(UsersController.class, controller -> controller.helloService("hola"))
 				.map(restClient::Request)
+				.withServiceUrl("Overriden serviceUrl")
 				.withUriVariables(new Object[] {"differentHola"})
 				.withContentType(MediaType.APPLICATION_JSON)
 				.withHeader("Accept", "application/json")
 				.withBody("Sample body content")
+				.withHttpHeaders(new HttpHeaders())
+				.withRequestHttpEntity(new HttpEntity<String>("Another body"))
+				.withResponseAs(Integer.class)
 				.getResponseEntity();
 		
 		System.out.println(responseEntity.getStatusCode());
 	}
-}
-
-@RequestMapping("/users")
-public interface UsersController{
-	
-	@RequestMapping
-	void simpleEmptyService();
-	
-	@RequestMapping("/hello/{hello}")
-	String helloService(@PathVariable("hello") String helloValue);
 }
