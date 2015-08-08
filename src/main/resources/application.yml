@@ -1,0 +1,6 @@
+spring:
+    data:
+        elasticsearch:
+            properties:
+                http:
+                    enabled: true
