@@ -1,7 +1,7 @@
-package com.mgiorda.resttemplate.client;
+# rest-template-client
+Java 8 Spring RestTemplate client - Based on builders and dynamic proxies
 
-import com.mgiorda.resttemplate.util.Interfaces;
-
+```java
 public class TestClass {
 	public static void main(String[] args) {
 		
@@ -23,4 +23,14 @@ public class TestClass {
 	
 		System.out.println(returnValue);
 	}
+}
+
+@RequestMapping("/users")
+public interface UsersController{
+	
+	@RequestMapping
+	void simpleEmptyService();
+	
+	@RequestMapping("/hello/{hello}")
+	String helloService(@PathVariable("hello") String helloValue);
 }
