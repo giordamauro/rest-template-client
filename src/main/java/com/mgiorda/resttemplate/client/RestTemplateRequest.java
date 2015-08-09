@@ -24,23 +24,28 @@ public class RestTemplateRequest<R> {
 	private Optional<HttpHeaders> httpHeaders = Optional.empty();
 	private Optional<HttpEntity<Object>> httpEntity = Optional.empty();
 	
-	RestTemplateRequest(HttpMethod httpMethod, String serviceUrl, RestTemplate restTemplate, String hostUrl) {
+	RestTemplateRequest(HttpMethod httpMethod, String serviceUrl, RestTemplateClient client) {
 		
 		Objects.requireNonNull(httpMethod);
 		Objects.requireNonNull(serviceUrl);
-		Objects.requireNonNull(restTemplate);
-		Objects.requireNonNull(hostUrl);
+		Objects.requireNonNull(client);
 		
-		this.restTemplate = restTemplate;
-		this.hostUrl = hostUrl;
+		this.restTemplate = client.getRestTemplate();
+		this.hostUrl = client.getHostUrl();
 		
 		this.httpMethod = httpMethod;
 		this.serviceUrl = serviceUrl;
+		
+		client.getDefaultHeaders()
+			.map(headers -> headers.entrySet())
+			.ifPresent(headers -> 
+				headers.forEach(header -> withHeader(header.getKey(), header.getValue()))
+			);
 	}
 	
-	RestTemplateRequest(RestService<?, R> restService, RestTemplate restTemplate, String hostUrl) {
+	RestTemplateRequest(RestService<?, R> restService, RestTemplateClient client) {
 		
-		this(restService.getHttpMethod(), restService.getServiceUrl(), restTemplate, hostUrl);
+		this(restService.getHttpMethod(), restService.getServiceUrl(), client);
 		this.uriVariables = restService.getUriVariables();
 		
 		Class<R> responseClass = restService.getResponseType();
