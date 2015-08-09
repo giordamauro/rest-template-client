@@ -7,6 +7,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
+import com.mgiorda.resttemplate.client.mvc.SpringMvcRestService;
 import com.mgiorda.resttemplate.util.Interfaces;
 
 public class TestClass {
@@ -25,7 +26,7 @@ public class TestClass {
 	@Test
 	public void testRequestServiceUsingLambda(){
 		
-		String returnValue = Interfaces.method(UsersController.class, controller -> controller.helloService("hola"))
+		String returnValue = Interfaces.method(UsersController.class, controller -> controller.helloService("helloValue", "myQueryValue"))
 				.map(SpringMvcRestService::New)
 				.map(restClient::Request)
 				.send();
@@ -36,10 +37,11 @@ public class TestClass {
 	@Test
 	public void testOverridingHttpValues(){
 		
-		ResponseEntity<Integer> responseEntity = restClient.Request(HttpMethod.PUT, "/nose")
+		ResponseEntity<Integer> responseEntity = restClient.Request(HttpMethod.PUT, "/dontknow")
 				.withHttpMethod(HttpMethod.GET)
 				.withServiceUrl("Overriden serviceUrl")
 				.withUriVariables(new Object[] {"differentHola"})
+				.withQueryParam("queryParam", "myValue")
 				.withContentType(MediaType.APPLICATION_JSON)
 				.withHeader("Accept", "application/json")
 				.withBody("Sample body content")

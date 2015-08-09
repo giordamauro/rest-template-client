@@ -87,6 +87,17 @@ public class RestTemplateRequest<R> {
 		return this;
 	}
 	
+	public RestTemplateRequest<R> withQueryParam(String queryParam, String value){
+		
+		Objects.nonNull(queryParam);
+		Objects.nonNull(value);
+		
+		String separator = serviceUrl.contains("\\?") ? "&" : "?";
+		this.serviceUrl += String.format("%s%s=%s", separator, queryParam, value);
+		
+		return this;
+	}
+	
 	public RestTemplateRequest<R> withHttpMethod(HttpMethod httpMethod){
 	
 		Objects.nonNull(body);

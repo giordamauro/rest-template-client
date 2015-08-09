@@ -8,8 +8,8 @@ public interface UsersController{
 	@RequestMapping
 	void simpleEmptyService();
 	
-	@RequestMapping("/hello/{hello}")
-	String helloService(@PathVariable("hello") String helloValue);
+	@RequestMapping(value="/hello/{hello}")
+	String helloService(@PathVariable("hello") String helloValue, @RequestParam("queryParam") String queryValue);
 }
 ```
 
@@ -30,7 +30,7 @@ public class TestClass {
 	@Test
 	public void testRequestServiceUsingLambda(){
 		
-		String returnValue = Interfaces.method(UsersController.class, controller -> controller.helloService("hola"))
+		String returnValue = Interfaces.method(UsersController.class, controller -> controller.helloService("helloValue", "myQueryValue"))
 				.map(SpringMvcRestService::New)
 				.map(restClient::Request)
 				.send();
@@ -41,10 +41,11 @@ public class TestClass {
 	@Test
 	public void testOverridingHttpValues(){
 		
-		ResponseEntity<Integer> responseEntity = restClient.Request(HttpMethod.PUT, "/nose")
+		ResponseEntity<Integer> responseEntity = restClient.Request(HttpMethod.PUT, "/dontknow")
 				.withHttpMethod(HttpMethod.GET)
 				.withServiceUrl("Overriden serviceUrl")
 				.withUriVariables(new Object[] {"differentHola"})
+				.withQueryParam("queryParam", "myValue")
 				.withContentType(MediaType.APPLICATION_JSON)
 				.withHeader("Accept", "application/json")
 				.withBody("Sample body content")
