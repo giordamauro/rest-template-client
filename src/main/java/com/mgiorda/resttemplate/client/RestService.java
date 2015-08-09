@@ -1,78 +1,30 @@
 package com.mgiorda.resttemplate.client;
 
-import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 
-import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 
-import com.mgiorda.resttemplate.util.MethodInvocation;
+public interface RestService<T, R> {
 
-public class RestService<T, E>{
-	
-//	TODO: Add complete information (consumes, produces, etc)
-//	TODO: Support multiple values (services Urls, methods, etc)
-	
-	private final RequestMethod method;
-	private final String serviceUrl;
-	private final Class<E> returnType;
-	private final Object[] defaultUriVariables;
-	
-	public RestService(MethodInvocation<T, E> info){
-		
-		Objects.requireNonNull(info);
-		
-		RequestMapping methodMappingAnn = AnnotationUtils.findAnnotation(info.getMethod(), RequestMapping.class);
-		Objects.requireNonNull(methodMappingAnn, String.format("Service method '%s' is not annotated with @RequestMapping", info.getMethod()));		
-		
-		RequestMapping classMappingAnn = AnnotationUtils.findAnnotation(info.getInterfaceClass(), RequestMapping.class);
-		String basePathUrl = Optional.ofNullable(classMappingAnn)
-				.filter(ann -> ann.value().length != 0)
-				.map(ann -> ann.value()[0])
-				.orElse("");
+	HttpMethod getHttpMethod();
 
-		String servicePathUrl = Optional.of(methodMappingAnn.value())
-				.filter(values -> values.length != 0)
-				.map(values -> values[0])
-				.orElse("");
-		
-		this.serviceUrl = basePathUrl + servicePathUrl;
-		
-		this.method = Optional.of(methodMappingAnn.method())
-				.filter(values -> values.length != 0)
-				.map(values -> values[0])
-				.orElse(RequestMethod.GET);
-		
-		@SuppressWarnings("unchecked")
-		Class<E> returnType = (Class<E>) info.getMethod().getReturnType();
-		this.returnType = returnType;
-		
-		this.defaultUriVariables = info.getArgs().orElse(new Object[]{});
-	}
-	
-	public RequestMethod getRequestMethod() {
-		return method;
-	}
-	
-	public HttpMethod getHttpMethod() {
-		return HttpMethod.valueOf(method.name());
-	}
+	String getServiceUrl();
 
-	public String getUrl() {
-		return serviceUrl;
-	}
+	Class<R> getResponseType();
 
-	public Class<E> getResponseType() {
-		return returnType;
-	}
+	Optional<Object[]> getUriVariables();
+
+	Optional<HttpHeaders> getHeaders();
 	
-	public Object[] getDefaultUriVariables(){
-		return defaultUriVariables;
-	}
-
-	public static <T, E> RestService<T, E> New(MethodInvocation<T, E> info){
-		return new RestService<T, E>(info);
+	Optional<Object> getRequestBody();
+	
+	Optional<String[]> getConsumes();
+	
+	Optional<String[]> getProduces();
+	
+	default <E> E map(Function<RestService<T, R>, E> mapper){
+		return mapper.apply(this);
 	}
 }

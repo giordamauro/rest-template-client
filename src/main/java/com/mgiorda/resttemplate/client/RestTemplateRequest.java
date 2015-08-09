@@ -17,25 +17,31 @@ public class RestTemplateRequest<R> {
 	
 	private HttpMethod httpMethod;
 	private String serviceUrl;
-	private Object[] uriVariables;
 	private Object body;
 	private Class<R> responseClass;
 	
+	private Optional<Object[]> uriVariables;
 	private Optional<HttpHeaders> httpHeaders = Optional.empty();
 	private Optional<HttpEntity<Object>> httpEntity = Optional.empty();
 	
-	RestTemplateRequest(RestService<?, R> restService, RestTemplate restTemplate, String hostUrl) {
+	RestTemplateRequest(HttpMethod httpMethod, String serviceUrl, RestTemplate restTemplate, String hostUrl) {
 		
-		Objects.requireNonNull(restService);
+		Objects.requireNonNull(httpMethod);
+		Objects.requireNonNull(serviceUrl);
 		Objects.requireNonNull(restTemplate);
 		Objects.requireNonNull(hostUrl);
 		
 		this.restTemplate = restTemplate;
 		this.hostUrl = hostUrl;
 		
-		this.httpMethod = restService.getHttpMethod();
-		this.serviceUrl = restService.getUrl();
-		this.uriVariables = restService.getDefaultUriVariables();
+		this.httpMethod = httpMethod;
+		this.serviceUrl = serviceUrl;
+	}
+	
+	RestTemplateRequest(RestService<?, R> restService, RestTemplate restTemplate, String hostUrl) {
+		
+		this(restService.getHttpMethod(), restService.getServiceUrl(), restTemplate, hostUrl);
+		this.uriVariables = restService.getUriVariables();
 		
 		Class<R> responseClass = restService.getResponseType();
 		this.responseClass = (!responseClass.equals(Void.TYPE)) ? responseClass : null;
@@ -53,9 +59,7 @@ public class RestTemplateRequest<R> {
 		
 	public RestTemplateRequest<R> withUriVariables(Object... uriVariables){
 		
-		Objects.nonNull(uriVariables);
-		
-		this.uriVariables = uriVariables;
+		this.uriVariables = Optional.of(uriVariables);
 		
 		return this;
 	}
@@ -123,7 +127,6 @@ public class RestTemplateRequest<R> {
 		return this;
 	}
 	
-
 	public <E> RestTemplateRequest<E> withResponseAs(Class<E> responseClass){
 
 		Objects.requireNonNull(responseClass);
@@ -140,7 +143,9 @@ public class RestTemplateRequest<R> {
 						.orElse(new HttpEntity<>(body))
 						);
 		
-		ResponseEntity<R> exchangeResponse = restTemplate.exchange(hostUrl + serviceUrl, httpMethod, requestEntity, responseClass, uriVariables);
+		Object[] uriVars = uriVariables.orElse(new Object[]{});
+		
+		ResponseEntity<R> exchangeResponse = restTemplate.exchange(hostUrl + serviceUrl, httpMethod, requestEntity, responseClass, uriVars);
 
 		return exchangeResponse;
 	}

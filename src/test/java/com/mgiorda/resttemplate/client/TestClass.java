@@ -3,17 +3,13 @@ package com.mgiorda.resttemplate.client;
 import org.junit.Test;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 import com.mgiorda.resttemplate.util.Interfaces;
 
 public class TestClass {
-		
-	/**
-	*  TODO: Allow overriding any of the Http RestTemplate parameters - Add getResponseEntityAs() with different type.
-	*/
-	
 	private RestTemplateClient restClient = RestTemplateClient.host("http://localhost:8080")
 	/*					.andRestTemplate(new RestTemplate())*/;
 		
@@ -21,6 +17,7 @@ public class TestClass {
 	public void testRequestSimpleService(){
 		
 		Interfaces.voidMethod(UsersController.class, UsersController::simpleEmptyService)
+			.map(SpringMvcRestService::New)
 			.map(restClient::Request)
 			.send();
 	}
@@ -29,6 +26,7 @@ public class TestClass {
 	public void testRequestServiceUsingLambda(){
 		
 		String returnValue = Interfaces.method(UsersController.class, controller -> controller.helloService("hola"))
+				.map(SpringMvcRestService::New)
 				.map(restClient::Request)
 				.send();
 
@@ -38,8 +36,8 @@ public class TestClass {
 	@Test
 	public void testOverridingHttpValues(){
 		
-		ResponseEntity<Integer> responseEntity = Interfaces.method(UsersController.class, controller -> controller.helloService("hola"))
-				.map(restClient::Request)
+		ResponseEntity<Integer> responseEntity = restClient.Request(HttpMethod.PUT, "/nose")
+				.withHttpMethod(HttpMethod.GET)
 				.withServiceUrl("Overriden serviceUrl")
 				.withUriVariables(new Object[] {"differentHola"})
 				.withContentType(MediaType.APPLICATION_JSON)
