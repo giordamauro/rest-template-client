@@ -17,27 +17,24 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
 import com.mgiorda.resttemplate.Application;
-import com.mgiorda.resttemplate.client.mvc.SpringMvcRestService;
-import com.mgiorda.resttemplate.util.Interfaces;
+import com.mgiorda.resttemplate.client.mvc.SpringMvcTemplateClient;
 
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
 @IntegrationTest("server.port=8080")
 @SpringApplicationConfiguration(classes = Application.class)
-public class TestClass {
+public class SpringMvcTestClass {
 
-	private RestTemplateClient restClient = RestTemplateClient.host("http://localhost:8080")
+	private SpringMvcTemplateClient restClient = RestTemplateClient.host("http://localhost:8080")
 						.addDefaultHeader("Authorization", "Basic dXNlcm5hbWU6MTIzNDU2")
-						.setRestTemplate(new TestRestTemplate());
+						.setRestTemplate(new TestRestTemplate())
+						.map(SpringMvcTemplateClient::new);
 		
 	@Test
 	public void testRequestSimpleService(){
-		
-		ResponseEntity<?> responseEntity = Interfaces.voidMethod(UserController.class, UserController::simpleEmptyService)
-			.map(SpringMvcRestService::New)
-			.map(restClient::Request)
-			.getResponseEntity();
+
+		ResponseEntity<?> responseEntity = restClient.getVoidResponseEntity(UserController.class, UserController::simpleEmptyService);
 		
 		Assert.assertThat(responseEntity.getStatusCode(), Matchers.equalTo(HttpStatus.OK));
 	}
@@ -48,19 +45,19 @@ public class TestClass {
 		String pathValue = "helloValue";
 		String queryValue = "queryValue";
 		
-		String returnValue = Interfaces.method(UserController.class, controller -> controller.helloService(pathValue, queryValue))
-				.map(SpringMvcRestService::New)
-				.map(restClient::Request)
-				.sendAndGet();
+		String returnValue = restClient.sendAndGet(UserController.class, controller -> controller.helloService(pathValue, queryValue));
 
 		String expectedMessage = String.format(UserControlerTestImpl.TEST_HELLO_SERVICE_FORMAT, pathValue, queryValue);
 		Assert.assertThat(returnValue, Matchers.equalTo(expectedMessage));
 	}
 	
-//	@Test
+	@Test
 	public void testOverridingHttpValues(){
 		
-		ResponseEntity<Integer> responseEntity = restClient.newRequest(HttpMethod.PUT, "/dontknow")
+		String pathValue = "helloValue";
+		String queryValue = "queryValue";
+		
+		ResponseEntity<Integer> responseEntity = restClient.newRequest(UserController.class, controller -> controller.helloService(pathValue, queryValue))
 				.withHttpMethod(HttpMethod.GET)
 				.withServiceUrl("Overriden serviceUrl")
 				.withUriVariables(new Object[] {"differentHola"})
@@ -72,7 +69,7 @@ public class TestClass {
 				.withRequestHttpEntity(new HttpEntity<String>("Another body"))
 				.withResponseAs(Integer.class)
 				.getResponseEntity();
-		
-		System.out.println(responseEntity.getStatusCode());
+				
+				System.out.println(responseEntity.getStatusCode());
 	}
 }

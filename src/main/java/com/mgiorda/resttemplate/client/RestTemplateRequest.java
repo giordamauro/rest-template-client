@@ -163,7 +163,7 @@ public class RestTemplateRequest<R> {
 		return exchangeResponse;
 	}
 
-	public R send() {
+	public R sendAndGet() {
 
 		ResponseEntity<R> response = getResponseEntity();
 
