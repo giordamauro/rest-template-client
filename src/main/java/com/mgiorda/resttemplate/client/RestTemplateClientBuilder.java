@@ -10,36 +10,36 @@ import org.springframework.web.client.RestTemplate;
 public class RestTemplateClientBuilder implements RestTemplateClient {
 
 	private RestTemplate restTemplate;
-	
+
 	private final String hostUrl;
 	private final Map<String, String> defaultHeaders = new HashMap<>();
-	
+
 	public RestTemplateClientBuilder(String hostUrl) {
-		
-		Objects.requireNonNull(hostUrl);
-	
+
+		Objects.requireNonNull(hostUrl, "Host url cannot be null");
+
 		this.hostUrl = hostUrl;
 		this.restTemplate = new RestTemplate();
 	}
-	
-	public RestTemplateClientBuilder andRestTemplate(RestTemplate restTemplate){
-		
-		Objects.requireNonNull(restTemplate);
+
+	public RestTemplateClientBuilder setRestTemplate(RestTemplate restTemplate) {
+
+		Objects.requireNonNull(restTemplate, "Rest template cannot be null");
 		this.restTemplate = restTemplate;
-		
+
 		return this;
 	}
-	
-	public RestTemplateClientBuilder setDefaultHeader(String headerName, String value){
-		
-		Objects.requireNonNull(headerName);
-		Objects.requireNonNull(value);
+
+	public RestTemplateClientBuilder addDefaultHeader(String headerName, String value) {
+
+		Objects.requireNonNull(headerName, "Header name cannot be null");
+		Objects.requireNonNull(value, "Value cannot be null");
 
 		defaultHeaders.put(headerName, value);
-		
+
 		return this;
 	}
-	
+
 	@Override
 	public RestTemplate getRestTemplate() {
 		return restTemplate;

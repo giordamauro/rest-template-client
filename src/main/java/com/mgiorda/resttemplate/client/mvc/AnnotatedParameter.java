@@ -12,7 +12,7 @@ class AnnotatedParameter<T> {
 		
 		public AnnotatedParameter(T value, List<Annotation> annotations) {
 		
-			Objects.nonNull(annotations);			
+			Objects.requireNonNull(annotations, "Annotations cannot be null");			
 			
 			this.value = value;
 			this.annotations = annotations;
@@ -25,7 +25,7 @@ class AnnotatedParameter<T> {
 		@SuppressWarnings("unchecked")
 		public <E extends Annotation> Optional<E> getAnnotation(Class<E> annotationClass) {
 			
-			Objects.requireNonNull(annotationClass);
+			Objects.requireNonNull(annotationClass, "Annotation class cannot be null");
 			return annotations
 					.parallelStream()
 					.filter(ann -> ann.annotationType().equals(annotationClass))

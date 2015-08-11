@@ -14,15 +14,13 @@ public interface RestService<T, R> {
 
 	Class<R> getResponseType();
 
-//	TODO: Compose in coordination to serviceUrl
 	Optional<Object[]> getUriVariables();
 
-//	TODO: Include Content-type/Accept as headers from consumes/produces 
 	Optional<HttpHeaders> getHeaders();
-	
+
 	Optional<Object> getRequestBody();
-	
-	default <E> E map(Function<RestService<T, R>, E> mapper){
+
+	default <E> E map(Function<RestService<T, R>, E> mapper) {
 		return mapper.apply(this);
 	}
 }

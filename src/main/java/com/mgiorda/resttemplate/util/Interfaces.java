@@ -13,8 +13,7 @@ public class Interfaces<T>{
 	
 	public Interfaces(Class<T> proxyClass) {
 		
-		Objects.nonNull(proxyClass);
-		this.proxyClass = proxyClass;
+		this.proxyClass = Objects.requireNonNull(proxyClass, "Interface Class cannot be null");
 	}
 	
 	public MethodInvocation<T, ?> voidMethod(Consumer<T> funcion){
@@ -36,7 +35,7 @@ public class Interfaces<T>{
 	}
 	
 	public static <T> MethodInvocation<T, ?> voidMethod(Class<T> interfaceClass, Consumer<T> consumer){
-		
+
 		return new Interfaces<T>(interfaceClass).voidMethod(consumer);
 	}
 	
@@ -71,9 +70,7 @@ public class Interfaces<T>{
 		}
 		
 		public MethodInvocation<T, E> getProxyInfo(){
-			
-			Objects.requireNonNull(proxyInfo, "Proxy method was never called.");
-			return proxyInfo;
+			return Objects.requireNonNull(proxyInfo, "Proxy method was never called.");
 		}
 	}
 }

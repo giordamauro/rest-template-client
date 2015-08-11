@@ -11,18 +11,18 @@ public interface RestTemplateClient {
 	RestTemplate getRestTemplate();
 
 	String getHostUrl();
-	
+
 	Optional<Map<String, String>> getDefaultHeaders();
 
 	default <T, E> RestTemplateRequest<E> Request(RestService<T, E> restService) {
 		return new RestTemplateRequest<>(restService, this);
 	}
-	
+
 	default RestTemplateRequest<?> Request(HttpMethod method, String serviceUrl) {
 		return new RestTemplateRequest<>(method, serviceUrl, this);
 	}
-	
-	static RestTemplateClientBuilder host(String hostUrl){
+
+	static RestTemplateClientBuilder host(String hostUrl) {
 		return new RestTemplateClientBuilder(hostUrl);
 	}
 }

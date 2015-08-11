@@ -15,9 +15,10 @@ public interface UsersController{
 
 ```java
 public class TestClass {
+
 	private RestTemplateClient restClient = RestTemplateClient.host("http://localhost:8080")
-						.setDefaultHeader("Authorization", "Basic dXNlcm5hbWU6MTIzNDU2")
-	/*					.andRestTemplate(new RestTemplate())*/;
+						.addDefaultHeader("Authorization", "Basic dXNlcm5hbWU6MTIzNDU2")
+	/*					.setRestTemplate(new RestTemplate())*/;
 		
 	@Test
 	public void testRequestSimpleService(){
