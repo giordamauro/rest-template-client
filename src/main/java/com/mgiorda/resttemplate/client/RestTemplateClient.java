@@ -18,7 +18,7 @@ public interface RestTemplateClient {
 		return new RestTemplateRequest<>(restService, this);
 	}
 
-	default RestTemplateRequest<?> Request(HttpMethod method, String serviceUrl) {
+	default RestTemplateRequest<?> newRequest(HttpMethod method, String serviceUrl) {
 		return new RestTemplateRequest<>(method, serviceUrl, this);
 	}
 

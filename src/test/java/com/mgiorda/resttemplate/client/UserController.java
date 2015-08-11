@@ -5,11 +5,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @RequestMapping("/users")
-public interface UsersController{
+public interface UserController{
 	
 	@RequestMapping
 	void simpleEmptyService();
 	
-	@RequestMapping(value="/hello/{hello}")
+	@RequestMapping("/hello/{hello}")
 	String helloService(@PathVariable("hello") String helloValue, @RequestParam("queryParam") String queryValue);
 }
